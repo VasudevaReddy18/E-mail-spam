@@ -71,12 +71,7 @@ trainer = ModelTrainer()
 trainer.train_all_models()
 ```
 
-## Model Performance
 
-- **Naive Bayes**: ~95% accuracy
-- **SVM**: ~97% accuracy  
-- **Random Forest**: ~96% accuracy
-- **Neural Network**: ~98% accuracy
 
 ## Contributing
 
