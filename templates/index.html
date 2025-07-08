@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Email Spam Classifier{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary">
+                <i class="fas fa-shield-alt"></i> Email Spam Classifier
+            </h1>
+            <p class="lead text-muted">
+                Advanced machine learning-powered email spam detection with real-time analysis
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Features Overview -->
+<div class="row mb-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-brain fa-3x text-primary"></i>
+                </div>
+                <h5 class="card-title">Advanced ML Models</h5>
+                <p class="card-text">
+                    Ensemble of multiple algorithms including Naive Bayes, SVM, Random Forest, 
+                    and Neural Networks for robust spam detection.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-chart-line fa-3x text-success"></i>
+                </div>
+                <h5 class="card-title">Real-time Analysis</h5>
+                <p class="card-text">
+                    Instant email classification with detailed probability scores and 
+                    confidence metrics for informed decisions.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-code fa-3x text-info"></i>
+                </div>
+                <h5 class="card-title">RESTful API</h5>
+                <p class="card-text">
+                    Easy integration with your applications through our comprehensive 
+                    API endpoints for single and batch predictions.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h3 class="text-center mb-4">
+            <i class="fas fa-bolt"></i> Quick Actions
+        </h3>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-search text-primary"></i> Classify Email
+                </h5>
+                <p class="card-text">Analyze email content for spam detection</p>
+                <a href="{{ url_for('classify_email') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> Start Classification
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-upload text-success"></i> Upload Email File
+                </h5>
+                <p class="card-text">Upload email files for batch analysis</p>
+                <a href="{{ url_for('upload_email') }}" class="btn btn-success">
+                    <i class="fas fa-arrow-right"></i> Upload Files
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-cogs text-warning"></i> Train Model
+                </h5>
+                <p class="card-text">Train or retrain the spam classifier</p>
+                <a href="{{ url_for('train_page') }}" class="btn btn-warning">
+                    <i class="fas fa-arrow-right"></i> Train Model
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-bar text-info"></i> View Dashboard
+                </h5>
+                <p class="card-text">Monitor model performance and statistics</p>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-info">
+                    <i class="fas fa-arrow-right"></i> View Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Status -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Model Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="model-status">
+                    <div class="text-center">
+                        <div class="spinner"></div>
+                        <p>Checking model status...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Documentation -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-code"></i> API Documentation
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Single Email Prediction</h6>
+                        <div class="bg-light p-3 rounded">
+                            <code>
+                                POST /api/predict<br>
+                                Content-Type: application/json<br><br>
+                                {<br>
+                                &nbsp;&nbsp;"email_content": "Your email content here"<br>
+                                }
+                            </code>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Batch Email Prediction</h6>
+                        <div class="bg-light p-3 rounded">
+                            <code>
+                                POST /api/batch_predict<br>
+                                Content-Type: application/json<br><br>
+                                {<br>
+                                &nbsp;&nbsp;"emails": ["email1", "email2", "email3"]<br>
+                                }
+                            </code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Model Information</h6>
+                        <div class="bg-light p-3 rounded">
+                            <code>
+                                GET /api/model_info
+                            </code>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Health Check</h6>
+                        <div class="bg-light p-3 rounded">
+                            <code>
+                                GET /api/health
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Check model status
+    checkModelStatus();
+    
+    function checkModelStatus() {
+        $.ajax({
+            url: '/api/model_info',
+            method: 'GET',
+            success: function(data) {
+                if (data.trained) {
+                    $('#model-status').html(`
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Model Status:</strong> Trained and Ready
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Model Type:</strong> ${data.model_summary.model_type}<br>
+                                <strong>Number of Models:</strong> ${data.model_summary.number_of_models}<br>
+                                <strong>Feature Count:</strong> ${data.feature_count}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Training Date:</strong> ${data.training_results.training_date ? new Date(data.training_results.training_date).toLocaleDateString() : 'N/A'}<br>
+                                <strong>Data Size:</strong> ${data.training_results.data_size || 'N/A'}<br>
+                                <strong>Ensemble Accuracy:</strong> ${data.training_results.ensemble ? (data.training_results.ensemble.accuracy * 100).toFixed(2) + '%' : 'N/A'}
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    $('#model-status').html(`
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Model Status:</strong> Not Trained
+                        </div>
+                        <p class="text-muted">
+                            The spam classifier model needs to be trained before it can be used for predictions. 
+                            Click the "Train Model" button to get started.
+                        </p>
+                        <a href="{{ url_for('train_page') }}" class="btn btn-warning">
+                            <i class="fas fa-cogs"></i> Train Model
+                        </a>
+                    `);
+                }
+            },
+            error: function() {
+                $('#model-status').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Error:</strong> Unable to check model status
+                    </div>
+                `);
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Train Model - Email Spam Classifier{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-center mb-4">
+            <i class="fas fa-cogs"></i> Model Training
+        </h2>
+        <p class="text-center text-muted mb-5">
+            Train or retrain the spam classifier with the latest data
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Training Control -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-play"></i> Training Control
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Training Process:</strong> The system will train multiple machine learning models 
+                    and create an ensemble for optimal performance.
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Models to be trained:</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <i class="fas fa-brain text-primary"></i> Naive Bayes
+                            <span class="badge bg-primary rounded-pill">Fast</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-line text-success"></i> Support Vector Machine
+                            <span class="badge bg-success rounded-pill">Accurate</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <i class="fas fa-tree text-info"></i> Random Forest
+                            <span class="badge bg-info rounded-pill">Robust</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-bar text-warning"></i> Logistic Regression
+                            <span class="badge bg-warning rounded-pill">Interpretable</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <i class="fas fa-network-wired text-danger"></i> Neural Network
+                            <span class="badge bg-danger rounded-pill">Advanced</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button id="train-btn" class="btn btn-warning btn-lg" onclick="startTraining()">
+                        <i class="fas fa-play"></i> Start Training
+                    </button>
+                    <button id="stop-btn" class="btn btn-danger" onclick="stopTraining()" style="display: none;">
+                        <i class="fas fa-stop"></i> Stop Training
+                    </button>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="save-model" checked>
+                        <label class="form-check-label" for="save-model">
+                            Save trained model automatically
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="show-plots" checked>
+                        <label class="form-check-label" for="show-plots">
+                            Generate performance plots
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Training Data Info -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-database"></i> Training Data
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="data-info">
+                    <div class="text-center">
+                        <div class="spinner"></div>
+                        <p>Loading data information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Training Progress -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Training Progress
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="training-progress" style="display: none;">
+                    <div class="mb-3">
+                        <h6>Overall Progress:</h6>
+                        <div class="progress mb-2">
+                            <div id="overall-progress" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div id="model-progress">
+                        <!-- Individual model progress will be added here -->
+                    </div>
+                    
+                    <div id="training-log" class="mt-3">
+                        <h6>Training Log:</h6>
+                        <div class="bg-dark text-light p-3 rounded" style="height: 200px; overflow-y: auto;">
+                            <div id="log-content">
+                                <small>Training log will appear here...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="training-ready">
+                    <div class="text-center">
+                        <i class="fas fa-play-circle fa-3x text-muted mb-3"></i>
+                        <h5>Ready to Train</h5>
+                        <p class="text-muted">
+                            Click "Start Training" to begin the model training process. 
+                            This will train all models and create an ensemble classifier.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Previous Results -->
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history"></i> Previous Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="previous-results">
+                    <div class="text-center">
+                        <div class="spinner"></div>
+                        <p>Loading previous results...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Training Results -->
+<div class="row mt-5" id="results-section" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy"></i> Training Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="training-results">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let trainingInProgress = false;
+let trainingInterval = null;
+
+$(document).ready(function() {
+    loadDataInfo();
+    loadPreviousResults();
+});
+
+function loadDataInfo() {
+    $.ajax({
+        url: '/api/model_info',
+        method: 'GET',
+        success: function(data) {
+            if (data.trained && data.training_results) {
+                const results = data.training_results;
+                $('#data-info').html(`
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary">${results.data_size || 'N/A'}</h4>
+                            <small class="text-muted">Total Emails</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">${results.spam_count || 'N/A'}</h4>
+                            <small class="text-muted">Spam Emails</small>
+                        </div>
+                    </div>
+                    <div class="row text-center mt-2">
+                        <div class="col-6">
+                            <h4 class="text-info">${results.ham_count || 'N/A'}</h4>
+                            <small class="text-muted">Ham Emails</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning">${results.training_date ? new Date(results.training_date).toLocaleDateString() : 'N/A'}</h4>
+                            <small class="text-muted">Last Training</small>
+                        </div>
+                    </div>
+                `);
+            } else {
+                $('#data-info').html(`
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>No training data found.</strong> The system will use sample data for training.
+                    </div>
+                `);
+            }
+        },
+        error: function() {
+            $('#data-info').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error:</strong> Unable to load data information.
+                </div>
+            `);
+        }
+    });
+}
+
+function loadPreviousResults() {
+    $.ajax({
+        url: '/api/model_info',
+        method: 'GET',
+        success: function(data) {
+            if (data.trained && data.training_results && data.training_results.ensemble) {
+                const ensemble = data.training_results.ensemble;
+                $('#previous-results').html(`
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <h5 class="text-primary">${(ensemble.accuracy * 100).toFixed(1)}%</h5>
+                            <small class="text-muted">Accuracy</small>
+                        </div>
+                        <div class="col-3">
+                            <h5 class="text-success">${(ensemble.precision * 100).toFixed(1)}%</h5>
+                            <small class="text-muted">Precision</small>
+                        </div>
+                        <div class="col-3">
+                            <h5 class="text-info">${(ensemble.recall * 100).toFixed(1)}%</h5>
+                            <small class="text-muted">Recall</small>
+                        </div>
+                        <div class="col-3">
+                            <h5 class="text-warning">${(ensemble.f1_score * 100).toFixed(1)}%</h5>
+                            <small class="text-muted">F1 Score</small>
+                        </div>
+                    </div>
+                `);
+            } else {
+                $('#previous-results').html(`
+                    <div class="text-center text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No previous training results available.</p>
+                    </div>
+                `);
+            }
+        },
+        error: function() {
+            $('#previous-results').html(`
+                <div class="text-center text-muted">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Unable to load previous results.</p>
+                </div>
+            `);
+        }
+    });
+}
+
+function startTraining() {
+    if (trainingInProgress) return;
+    
+    trainingInProgress = true;
+    $('#train-btn').hide();
+    $('#stop-btn').show();
+    $('#training-ready').hide();
+    $('#training-progress').show();
+    
+    // Initialize progress
+    $('#overall-progress').css('width', '0%').text('0%');
+    $('#model-progress').html('');
+    $('#log-content').html('<small>Starting training process...</small>');
+    
+    // Simulate training progress
+    let progress = 0;
+    const models = ['naive_bayes', 'svm', 'random_forest', 'logistic_regression', 'neural_network'];
+    let currentModel = 0;
+    
+    trainingInterval = setInterval(function() {
+        progress += 2;
+        if (progress > 100) progress = 100;
+        
+        $('#overall-progress').css('width', progress + '%').text(progress + '%');
+        
+        // Update model progress
+        if (progress >= (currentModel + 1) * 20 && currentModel < models.length) {
+            const modelName = models[currentModel].replace('_', ' ').toUpperCase();
+            $('#model-progress').append(`
+                <div class="mb-2">
+                    <small>${modelName}: <span class="text-success">✓ Completed</span></small>
+                </div>
+            `);
+            $('#log-content').append(`<br><small class="text-success">✓ ${modelName} training completed</small>`);
+            currentModel++;
+        }
+        
+        if (progress >= 100) {
+            completeTraining();
+        }
+    }, 100);
+    
+    // Start actual training
+    $.ajax({
+        url: '/train_model',
+        method: 'POST',
+        data: JSON.stringify({
+            save_model: $('#save-model').is(':checked'),
+            show_plots: $('#show-plots').is(':checked')
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                $('#log-content').append('<br><small class="text-success">✓ Training completed successfully!</small>');
+                showResults(response.results);
+            } else {
+                $('#log-content').append('<br><small class="text-danger">✗ Training failed: ' + response.message + '</small>');
+            }
+        },
+        error: function() {
+            $('#log-content').append('<br><small class="text-danger">✗ Training failed due to server error</small>');
+        }
+    });
+}
+
+function stopTraining() {
+    if (trainingInterval) {
+        clearInterval(trainingInterval);
+    }
+    trainingInProgress = false;
+    $('#train-btn').show();
+    $('#stop-btn').hide();
+    $('#log-content').append('<br><small class="text-warning">⚠ Training stopped by user</small>');
+}
+
+function completeTraining() {
+    if (trainingInterval) {
+        clearInterval(trainingInterval);
+    }
+    trainingInProgress = false;
+    $('#train-btn').show();
+    $('#stop-btn').hide();
+    $('#log-content').append('<br><small class="text-success">🎉 Training process completed!</small>');
+    
+    // Reload data
+    setTimeout(function() {
+        loadDataInfo();
+        loadPreviousResults();
+    }, 1000);
+}
+
+function showResults(results) {
+    $('#results-section').show();
+    
+    let resultsHtml = '<div class="row">';
+    
+    // Individual model results
+    if (results.individual_models) {
+        resultsHtml += '<div class="col-md-6"><h6>Individual Model Performance:</h6>';
+        for (const [model, metrics] of Object.entries(results.individual_models)) {
+            resultsHtml += `
+                <div class="feature-card">
+                    <strong>${model.replace('_', ' ').toUpperCase()}</strong><br>
+                    <small class="text-muted">
+                        Accuracy: ${(metrics.accuracy * 100).toFixed(1)}% | 
+                        F1: ${(metrics.f1_score * 100).toFixed(1)}%
+                    </small>
+                </div>
+            `;
+        }
+        resultsHtml += '</div>';
+    }
+    
+    // Ensemble results
+    if (results.ensemble) {
+        resultsHtml += '<div class="col-md-6"><h6>Ensemble Performance:</h6>';
+        resultsHtml += `
+            <div class="stats-card">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4>${(results.ensemble.accuracy * 100).toFixed(1)}%</h4>
+                        <small>Accuracy</small>
+                    </div>
+                    <div class="col-6">
+                        <h4>${(results.ensemble.f1_score * 100).toFixed(1)}%</h4>
+                        <small>F1 Score</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        resultsHtml += '</div>';
+    }
+    
+    resultsHtml += '</div>';
+    
+    $('#training-results').html(resultsHtml);
+}
+</script>
+{% endblock %} 

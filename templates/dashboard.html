@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Email Spam Classifier{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-center mb-4">
+            <i class="fas fa-chart-bar"></i> Model Dashboard
+        </h2>
+        <p class="text-center text-muted mb-5">
+            Monitor model performance and system statistics
+        </p>
+    </div>
+</div>
+
+{% if model_trained %}
+    <!-- Performance Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3>{{ "%.1f"|format(summary.performance.ensemble.accuracy * 100) }}%</h3>
+                <p class="mb-0">Overall Accuracy</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3>{{ "%.1f"|format(summary.performance.ensemble.precision * 100) }}%</h3>
+                <p class="mb-0">Precision</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3>{{ "%.1f"|format(summary.performance.ensemble.recall * 100) }}%</h3>
+                <p class="mb-0">Recall</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3>{{ "%.1f"|format(summary.performance.ensemble.f1_score * 100) }}%</h3>
+                <p class="mb-0">F1 Score</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Details -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Model Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="model-info">
+                        <strong>Model Type:</strong> {{ summary.model_type }}<br>
+                        <strong>Number of Models:</strong> {{ summary.number_of_models }}<br>
+                        <strong>Models:</strong> {{ summary.models | join(', ') | title }}<br>
+                        <strong>Training Date:</strong> {{ training_results.training_date | datetime }}<br>
+                        <strong>Data Size:</strong> {{ training_results.data_size }} emails<br>
+                        <strong>Spam/Ham Ratio:</strong> {{ training_results.spam_count }}/{{ training_results.ham_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Performance Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="model-info">
+                        <strong>Ensemble Accuracy:</strong> {{ "%.2f"|format(summary.performance.ensemble.accuracy) }}<br>
+                        <strong>Ensemble Precision:</strong> {{ "%.2f"|format(summary.performance.ensemble.precision) }}<br>
+                        <strong>Ensemble Recall:</strong> {{ "%.2f"|format(summary.performance.ensemble.recall) }}<br>
+                        <strong>Ensemble F1:</strong> {{ "%.2f"|format(summary.performance.ensemble.f1_score) }}<br>
+                        <strong>Feature Count:</strong> {{ summary.feature_count }}<br>
+                        <strong>Model Status:</strong> <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Model Performance -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Individual Model Performance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Accuracy</th>
+                                    <th>Precision</th>
+                                    <th>Recall</th>
+                                    <th>F1 Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model_name, metrics in summary.performance.individual_models.items() %}
+                                <tr>
+                                    <td><strong>{{ model_name.replace('_', ' ').title() }}</strong></td>
+                                    <td>{{ "%.3f"|format(metrics.accuracy) }}</td>
+                                    <td>{{ "%.3f"|format(metrics.precision) }}</td>
+                                    <td>{{ "%.3f"|format(metrics.recall) }}</td>
+                                    <td>{{ "%.3f"|format(metrics.f1_score) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- No Model Trained -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h4>No Model Trained</h4>
+                    <p class="text-muted">
+                        The spam classifier model has not been trained yet. 
+                        Please train the model to view performance metrics and statistics.
+                    </p>
+                    <a href="{{ url_for('train_page') }}" class="btn btn-warning">
+                        <i class="fas fa-cogs"></i> Train Model
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- System Status -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-server"></i> System Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h6>API Status</h6>
+                        <small class="text-muted">Operational</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-database fa-2x text-info mb-2"></i>
+                        <h6>Database</h6>
+                        <small class="text-muted">Connected</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-brain fa-2x text-primary mb-2"></i>
+                        <h6>ML Pipeline</h6>
+                        <small class="text-muted">Ready</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                        <h6>Security</h6>
+                        <small class="text-muted">Active</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Add any dashboard-specific JavaScript here
+    console.log('Dashboard loaded');
+});
+</script>
+{% endblock %} 

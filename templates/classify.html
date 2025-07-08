@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Classify Email - Email Spam Classifier{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-center mb-4">
+            <i class="fas fa-search"></i> Email Classification
+        </h2>
+        <p class="text-center text-muted mb-5">
+            Enter email content to analyze for spam detection
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Input Form -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-envelope"></i> Email Content
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="email_content" class="form-label">Email Content</label>
+                        <textarea 
+                            class="form-control" 
+                            id="email_content" 
+                            name="email_content" 
+                            rows="12" 
+                            placeholder="Paste your email content here..."
+                            required
+                        >{{ email_content or '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Analyze Email
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Sample Emails -->
+                <div class="mt-4">
+                    <h6>Sample Emails for Testing:</h6>
+                    <div class="btn-group-vertical w-100" role="group">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadSampleEmail('spam')">
+                            <i class="fas fa-exclamation-triangle text-danger"></i> Sample Spam Email
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadSampleEmail('ham')">
+                            <i class="fas fa-check text-success"></i> Sample Ham Email
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearEmail()">
+                            <i class="fas fa-trash"></i> Clear Content
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results -->
+    <div class="col-lg-6">
+        {% if result %}
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Classification Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Classification Result -->
+                    {% if result.is_spam %}
+                        <div class="spam-indicator">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                            <h4>SPAM DETECTED</h4>
+                            <p class="mb-0">This email has been classified as spam</p>
+                        </div>
+                    {% else %}
+                        <div class="ham-indicator">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <h4>LEGITIMATE EMAIL</h4>
+                            <p class="mb-0">This email appears to be legitimate</p>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Probability Bars -->
+                    <div class="mt-4">
+                        <h6>Classification Probabilities:</h6>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Spam Probability</span>
+                                <span>{{ result.spam_probability }}%</span>
+                            </div>
+                            <div class="probability-bar">
+                                <div class="probability-fill spam-fill" data-width="{{ result.spam_probability }}"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Ham Probability</span>
+                                <span>{{ result.ham_probability }}%</span>
+                            </div>
+                            <div class="probability-bar">
+                                <div class="probability-fill ham-fill" data-width="{{ result.ham_probability }}"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Confidence</span>
+                                <span>{{ result.confidence }}%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" data-width="{{ result.confidence }}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Individual Model Predictions -->
+                    <div class="mt-4">
+                        <h6>Individual Model Predictions:</h6>
+                        <div class="row">
+                            {% for model_name, prediction in result.individual_predictions.items() %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="feature-card">
+                                        <strong>{{ model_name.replace('_', ' ').title() }}</strong><br>
+                                        <small class="text-muted">
+                                            Prediction: 
+                                            <span class="badge bg-{{ 'danger' if prediction.prediction else 'success' }}">
+                                                {{ 'SPAM' if prediction.prediction else 'HAM' }}
+                                            </span>
+                                        </small><br>
+                                        <small class="text-muted">
+                                            Probability: {{ (prediction.probability * 100) | round(1) }}%
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Confidence Level -->
+                    <div class="mt-4">
+                        <h6>Confidence Level:</h6>
+                        {% if result.confidence >= 80 %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> High Confidence ({{ result.confidence }}%)
+                            </div>
+                        {% elif result.confidence >= 60 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Medium Confidence ({{ result.confidence }}%)
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-question-circle"></i> Low Confidence ({{ result.confidence }}%)
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <i class="fas fa-envelope-open fa-3x text-muted mb-3"></i>
+                        <h5>Ready to Analyze</h5>
+                        <p class="text-muted">
+                            Enter email content in the form on the left and click "Analyze Email" 
+                            to get instant spam classification results.
+                        </p>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-lightbulb"></i> Tips for Better Results:</h6>
+                            <ul class="text-start mb-0">
+                                <li>Include the full email content including subject and body</li>
+                                <li>Include email headers if available</li>
+                                <li>Use sample emails to test the system</li>
+                                <li>Check individual model predictions for detailed analysis</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Additional Features -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs"></i> Advanced Features
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-upload fa-2x text-primary mb-2"></i>
+                        <h6>File Upload</h6>
+                        <p class="text-muted">Upload email files for analysis</p>
+                        <a href="{{ url_for('upload_email') }}" class="btn btn-outline-primary btn-sm">
+                            Upload Files
+                        </a>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-code fa-2x text-success mb-2"></i>
+                        <h6>API Access</h6>
+                        <p class="text-muted">Use our RESTful API for integration</p>
+                        <button class="btn btn-outline-success btn-sm" onclick="showApiInfo()">
+                            View API
+                        </button>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-chart-bar fa-2x text-warning mb-2"></i>
+                        <h6>Performance</h6>
+                        <p class="text-muted">View model performance metrics</p>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-warning btn-sm">
+                            Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sample emails for testing
+const sampleEmails = {
+    spam: `URGENT: You've won $1,000,000! 
+    
+CONGRATULATIONS! You're the lucky winner of our exclusive lottery! 
+
+Click here to claim your prize now: http://fake-lottery.com/claim
+Limited time offer! Don't miss out on this amazing opportunity!
+
+FREE MONEY - NO STRINGS ATTACHED!
+Act now before this offer expires!`,
+
+    ham: `Hi John,
+
+I hope you're doing well. I wanted to follow up on our meeting from last week regarding the project timeline.
+
+Could we schedule a call tomorrow at 3 PM to discuss the next steps? I have some updates on the deliverables that I'd like to share.
+
+Best regards,
+Sarah
+
+P.S. Don't forget to bring the quarterly report.`
+};
+
+function loadSampleEmail(type) {
+    document.getElementById('email_content').value = sampleEmails[type];
+}
+
+function clearEmail() {
+    document.getElementById('email_content').value = '';
+}
+
+function showApiInfo() {
+    alert(`API Endpoint: POST /api/predict
+Content-Type: application/json
+
+Example:
+{
+  "email_content": "Your email content here"
+}
+
+Response:
+{
+  "is_spam": true,
+  "spam_probability": 0.85,
+  "ham_probability": 0.15,
+  "confidence": 0.70
+}`);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('.probability-fill, .progress-bar').forEach(function(bar) {
+        var width = bar.getAttribute('data-width');
+        if (width !== null) {
+            bar.style.width = width + '%';
+        }
+    });
+});
+</script>
+{% endblock %} 
